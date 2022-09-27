@@ -1,0 +1,389 @@
+// const express = require("express");
+// const router = express.Router();
+// const productModel = require("../Model/Product");
+// const bodyParser = require("body-parser");
+// const auth = require("../middleware/Auth");
+// router.use(bodyParser());
+
+// router.get("/", async (req, res) => {
+//   // console.log(auth);
+//   try {
+//     const products = await productModel.find({});
+//     // console.log(products);
+//     res.status(200).json(products);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.post("/", async (req, res) => {
+//   try {
+//     const {
+//       review,
+//       title,
+//       description,
+//       category,
+//       stock,
+//       images,
+//       price,
+//       thumbnail,
+//       rate,
+//       brand,
+//     } = req.body;
+
+//     console.log(
+//       review,
+//       title,
+//       description,
+//       category,
+//       stock,
+//       images,
+//       price,
+//       thumbnail
+//     );
+
+//     const product = new productModel({
+//       title,
+//       description,
+//       category,
+//       price,
+//       thumbnail,
+//       images,
+//       stock,
+//       review,
+//       rate,
+//       brand,
+//     });
+
+//     const prod = await product.save();
+//     console.log(prod);
+//     res.status(200).json(prod);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/smartphones", async (req, res) => {
+//   try {
+//     const product = await productModel.find({ category: "smartphones" });
+//     console.log(product);
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/laptops", async (req, res) => {
+//   try {
+//     const product = await productModel.find({
+//       category: "laptops",
+//     });
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/fragrances", async (req, res) => {
+//   try {
+//     const product = await productModel.find({ category: "fragrances" });
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/skincare", async (req, res) => {
+//   try {
+//     const product = await productModel.find({ category: "skincare" });
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/groceries", async (req, res) => {
+//   try {
+//     const product = await productModel.find({ category: "groceries" });
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/home_decor", async (req, res) => {
+//   try {
+//     const product = await productModel.find({ category: "home-decoration" });
+//     res.status(200).json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.delete("/:id", async (req, res) => {
+//   try {
+//     const product = await productModel.findByIdAndDelete({
+//       _id: req.params.id,
+//     });
+//     if (product) {
+//       res.status(200).json({ message: "Product Removed successfully" });
+//     } else {
+//       res.status(400).json({ error: "Product Not Found" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// router.get("/:id", async (req, res) => {
+//   try {
+//     const product = await productModel.findOne({ _id: req.params.id });
+//     if (product) {
+//       res.status(200).json(product);
+//     } else {
+//       res.status(400).json({ error: "Product Not Found" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
+
+// module.exports = router;
+
+const express = require("express");
+const productModel = require("../Model/Product");
+const { isAuth, isAdmin } = require("../middleware/Auth");
+const bodyParser = require("body-parser");
+
+const router = express.Router();
+router.use(bodyParser());
+router.get("/", async (req, res) => {
+  try {
+    const products = await productModel.find();
+    res.send(products);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.post("/", isAuth, isAdmin, async (req, res) => {
+  try {
+    console.log("name ha ya ", req.body);
+    const newProduct = new productModel({
+      name: req.body.name,
+      image: req.body.image,
+      price: req.body.price,
+      category: req.body.category,
+      brand: req.body.brand,
+      countInStock: req.body.stock,
+      rating: req.body.rate,
+      numReviews: req.body.review,
+      description: req.body.description,
+      images: req.body.images,
+    });
+    const product = await newProduct.save();
+    console.log(product);
+    res.send({ message: "Product Created", product });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.put("/:id", isAuth, isAdmin, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await productModel.findById(productId);
+    if (product) {
+      product.name = req.body.name;
+      product.price = req.body.price;
+      product.image = req.body.image;
+      product.images = req.body.images;
+      product.category = req.body.category;
+      product.brand = req.body.brand;
+      product.countInStock = req.body.countInStock;
+      product.description = req.body.description;
+      await product.save();
+      res.send({ message: "Product Updated" });
+    } else {
+      res.status(404).send({ message: "Product Not Found" });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.delete("/:id", isAuth, isAdmin, async (req, res) => {
+  try {
+    const product = await productModel.findById(req.params.id);
+    if (product) {
+      await product.remove();
+      res.send({ message: "Product Deleted" });
+    } else {
+      res.status(404).send({ message: "Product Not Found" });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.post("/:id/reviews", isAuth, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await productModel.findById(productId);
+    if (product) {
+      if (product.reviews.find((x) => x.name === req.user.name)) {
+        return res
+          .status(400)
+          .send({ message: "You already submitted a review" });
+      }
+
+      const review = {
+        name: req.user.name,
+        rating: Number(req.body.rating),
+        comment: req.body.comment,
+      };
+      product.reviews.push(review);
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.reduce((a, c) => c.rating + a, 0) /
+        product.reviews.length;
+      const updatedProduct = await product.save();
+      res.status(201).send({
+        message: "Review Created",
+        review: updatedProduct.reviews[updatedProduct.reviews.length - 1],
+        numReviews: product.numReviews,
+        rating: product.rating,
+      });
+    } else {
+      res.status(404).send({ message: "Product Not Found" });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+const PAGE_SIZE = 3;
+
+router.get("/admin", isAuth, isAdmin, async (req, res) => {
+  try {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const products = await productModel
+      .find()
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countProducts = await productModel.countDocuments();
+    res.send({
+      products,
+      countProducts,
+      page,
+      pages: Math.ceil(countProducts / pageSize),
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/search", async (req, res) => {
+  try {
+    const { query } = req;
+    const pageSize = query.pageSize || PAGE_SIZE;
+    const page = query.page || 1;
+    const category = query.category || "";
+    const price = query.price || "";
+    const rating = query.rating || "";
+    const order = query.order || "";
+    const searchQuery = query.query || "";
+
+    const queryFilter =
+      searchQuery && searchQuery !== "all"
+        ? {
+            name: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          }
+        : {};
+    const categoryFilter = category && category !== "all" ? { category } : {};
+    const ratingFilter =
+      rating && rating !== "all"
+        ? {
+            rating: {
+              $gte: Number(rating),
+            },
+          }
+        : {};
+    const priceFilter =
+      price && price !== "all"
+        ? {
+            // 1-50
+            price: {
+              $gte: Number(price.split("-")[0]),
+              $lte: Number(price.split("-")[1]),
+            },
+          }
+        : {};
+    const sortOrder =
+      order === "featured"
+        ? { featured: -1 }
+        : order === "lowest"
+        ? { price: 1 }
+        : order === "highest"
+        ? { price: -1 }
+        : order === "toprated"
+        ? { rating: -1 }
+        : order === "newest"
+        ? { createdAt: -1 }
+        : { _id: -1 };
+
+    const products = await productModel
+      .find({
+        ...queryFilter,
+        ...categoryFilter,
+        ...priceFilter,
+        ...ratingFilter,
+      })
+      .sort(sortOrder)
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+
+    const countProducts = await productModel.countDocuments({
+      ...queryFilter,
+      ...categoryFilter,
+      ...priceFilter,
+      ...ratingFilter,
+    });
+    res.send({
+      products,
+      countProducts,
+      page,
+      pages: Math.ceil(countProducts / pageSize),
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/categories", async (req, res) => {
+  try {
+    const categories = await productModel.find().distinct("category");
+    res.send(categories);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  console.log(req.params.id);
+  const product = await productModel.findById(req.params.id);
+  console.log(product);
+  if (product) {
+    res.send(product);
+  } else {
+    res.status(404).send({ message: "Product Not Found" });
+  }
+});
+
+module.exports = router;
