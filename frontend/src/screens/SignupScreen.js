@@ -1,82 +1,92 @@
-import Axios from "axios";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
-import { Store } from "../Store";
-import { toast } from "react-toastify";
-import { getError } from "../utils";
-import * as Yup from "yup";
-import signup from "../Images/signup.jpg";
+import Axios from 'axios'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useContext, useEffect, useState } from 'react'
+import { Store } from '../Store'
+import { toast } from 'react-toastify'
+import { getError } from '../utils'
+import * as Yup from 'yup'
+import signup from '../Images/signup.jpg'
 
-import { useFormik } from "formik";
+import { useFormik } from 'formik'
 
 export default function SignupScreen() {
-  const navigate = useNavigate();
-  const { search } = useLocation();
-  const redirectInUrl = new URLSearchParams(search).get("redirect");
-  console.log(redirectInUrl);
-  const redirect = redirectInUrl ? redirectInUrl : "/";
+  const navigate = useNavigate()
+  const { search } = useLocation()
+  const redirectInUrl = new URLSearchParams(search).get('redirect')
+  console.log(redirectInUrl)
+  const redirect = redirectInUrl ? redirectInUrl : '/signin'
 
-  const { state, dispatch: ctxDispatch } = useContext(Store);
-  const { userInfo } = state;
+  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { userInfo } = state
 
   useEffect(() => {
     if (userInfo) {
-      navigate(redirect);
+      navigate(redirect)
     }
-  }, [navigate, redirect, userInfo]);
+  }, [navigate, redirect, userInfo])
 
   const initialValues = {
-    name: "",
-    email: "",
-    phone: "",
-    gender: "",
-    password: "",
-  };
+    name: '',
+    email: '',
+    phone: '',
+    gender: '',
+    password: '',
+  }
 
   const schema = Yup.object({
     name: Yup.string()
-      .min(5, "Username have atleast 5 charactors")
-      .max(25, "Username have atmost 25 charactors")
+      .min(5, 'Username have atleast 5 charactors')
+      .max(25, 'Username have atmost 25 charactors')
       .trim()
-      .required("Username is Required"),
+      .required('Username is Required'),
     email: Yup.string()
-      .email("Please Enter a valid email address")
-      .required("Email is required"),
+      .email('Please Enter a valid email address')
+      .required('Email is required'),
     password: Yup.string()
       .matches(
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
-        "UserName accepts 8 to 15 characters.\n UserName should be any lower case or upper case character.\n UserName must contain digit or special symbol “_-”"
+        'UserName accepts 8 to 15 characters.\n UserName should be any lower case or upper case character.\n UserName must contain digit or special symbol “_-”',
       )
       .min(8)
-      .required("Password is Required"),
+      .required('Password is Required'),
     phone: Yup.string()
-      .matches(/^[0-9]{10}$/, "Phone containes only 10 digits")
-      .required("Please Enater a valid Phone No."),
-    gender: Yup.string().required("Please Select an Option"),
-  });
+      .matches(/^[0-9]{10}$/, 'Phone containes only 10 digits')
+      .required('Please Enater a valid Phone No.'),
+    gender: Yup.string().required('Please Select an Option'),
+  })
 
-  const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
-    useFormik({
-      initialValues: initialValues,
-      validationSchema: schema,
-      onSubmit: async (values) => {
-        console.log(values);
-        try {
-          const { data } = await Axios.post("/user/register", {
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-            gender: values.gender,
-            password: values.password,
-          });
-          ctxDispatch({ type: "USER_SIGNIN", payload: data });
-          localStorage.setItem("userInfo", JSON.stringify(data));
-          navigate(redirect || "/");
-        } catch (err) {
-          toast.error(getError(err));
+  const {
+    values,
+    errors,
+    touched,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+  } = useFormik({
+    initialValues: initialValues,
+    validationSchema: schema,
+    onSubmit: async (values) => {
+      console.log(values)
+      try {
+        const data = await Axios.post('/user/register', {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          gender: values.gender,
+          password: values.password,
+        })
+        console.log(data)
+        if (data && data.status == 200) {
+          navigate('/signin')
         }
-      },
-    });
+        // ctxDispatch({ type: "USER_SIGNIN", payload: data });
+        // localStorage.setItem("userInfo", JSON.stringify(data));
+        // navigate(redirect || "/");
+      } catch (err) {
+        toast.error(getError(err))
+      }
+    },
+  })
 
   return (
     <>
@@ -98,8 +108,8 @@ export default function SignupScreen() {
                   id="username"
                   aria-describedby="emailHelp"
                   style={{
-                    backgroundColor: "transparent",
-                    outline: "none",
+                    backgroundColor: 'transparent',
+                    outline: 'none',
                     border: 0,
                   }}
                   value={values.name}
@@ -123,8 +133,8 @@ export default function SignupScreen() {
                   id="email"
                   aria-describedby="emailHelp"
                   style={{
-                    backgroundColor: "transparent",
-                    outline: "none",
+                    backgroundColor: 'transparent',
+                    outline: 'none',
                     border: 0,
                   }}
                   name="email"
@@ -150,8 +160,8 @@ export default function SignupScreen() {
                   id="email"
                   aria-describedby="emailHelp"
                   style={{
-                    backgroundColor: "transparent",
-                    outline: "none",
+                    backgroundColor: 'transparent',
+                    outline: 'none',
                     border: 0,
                   }}
                   name="phone"
@@ -174,8 +184,8 @@ export default function SignupScreen() {
                   className="form-control border-bottom border-3 rounded-0"
                   id="password"
                   style={{
-                    backgroundColor: "transparent",
-                    outline: "none",
+                    backgroundColor: 'transparent',
+                    outline: 'none',
                     border: 0,
                   }}
                   name="password"
@@ -268,7 +278,7 @@ export default function SignupScreen() {
 
               <div>
                 <p className="fw-bold mt-3 text-center ">
-                  Already Have An Account ?{" "}
+                  Already Have An Account ?{' '}
                   <Link
                     to={`/signin?redirect=${redirect}`}
                     className=" text-decoration-none"
@@ -282,5 +292,5 @@ export default function SignupScreen() {
         </div>
       </div>
     </>
-  );
+  )
 }

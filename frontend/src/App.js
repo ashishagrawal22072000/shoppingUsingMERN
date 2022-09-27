@@ -225,7 +225,7 @@ function App() {
                         <i class="flaticon-shopping-cart"></i>
                       </Link>
                     </li>
-                    <li class="my-account">
+                    <li class="my-account d-flex">
                       {userInfo ? (
                         <>
                           <div class="dropdown">

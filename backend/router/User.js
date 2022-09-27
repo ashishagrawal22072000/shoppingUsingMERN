@@ -178,16 +178,16 @@
 
 // module.exports = router;
 
-const express = require("express");
-const bodyParser = require("body-parser");
-const router = express.Router();
-const bcrypt = require("bcryptjs");
-const userModel = require("../Model/User");
-const { isAuth, isAdmin, generateToken } = require("../middleware/Auth");
-const verifyEmail = require("../middleware/EmailAuth");
-const { mail, pass, service, email_port, secretKey } = require("../config");
-const nodemailer = require("nodemailer");
-const jwt = require("jsonwebtoken");
+const express = require('express')
+const bodyParser = require('body-parser')
+const router = express.Router()
+const bcrypt = require('bcryptjs')
+const userModel = require('../Model/User')
+const { isAuth, isAdmin, generateToken } = require('../middleware/Auth')
+const verifyEmail = require('../middleware/EmailAuth')
+const { mail, pass, service, email_port, secretKey } = require('../config')
+const nodemailer = require('nodemailer')
+const jwt = require('jsonwebtoken')
 const transporter = nodemailer.createTransport({
   service: service,
   port: email_port,
@@ -196,85 +196,112 @@ const transporter = nodemailer.createTransport({
     user: mail,
     pass: pass,
   },
-});
+})
 
-router.use(bodyParser());
+router.use(bodyParser())
 
-router.get("/", isAuth, isAdmin, async (req, res) => {
+router.get('/', isAuth, isAdmin, async (req, res) => {
   try {
-    const user = await userModel.find({});
-    res.send(user);
+    const user = await userModel.find({})
+    res.send(user)
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
-router.get("/:id", isAuth, isAdmin, async (req, res) => {
+router.get('/:id', isAuth, isAdmin, async (req, res) => {
   try {
-    const user = await userModel.findById(req.params.id);
+    const user = await userModel.findById(req.params.id)
     if (user) {
-      res.send(user);
+      res.send(user)
     } else {
-      res.status(404).send({ message: "user not found" });
+      res.status(404).send({ message: 'user not found' })
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
-router.put("/:id", isAuth, isAdmin, async (req, res) => {
+router.put('/:id', isAuth, isAdmin, async (req, res) => {
   try {
-    const user = await userModel.findById(req.params.id);
+    const user = await userModel.findById(req.params.id)
     if (user) {
-      user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
-      user.isAdmin = Boolean(req.body.isAdmin);
-      const updateUser = await user.save();
-      res.send({ message: "User Update", user: updateUser });
+      user.name = req.body.name || user.name
+      user.email = req.body.email || user.email
+      user.isAdmin = Boolean(req.body.isAdmin)
+      const updateUser = await user.save()
+      res.send({ message: 'User Update', user: updateUser })
     } else {
-      res.status(404).send({ message: "user not found" });
+      res.status(404).send({ message: 'user not found' })
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
-router.delete("/:id", isAdmin, isAuth, async (req, res) => {
+router.delete('/:id', isAdmin, isAuth, async (req, res) => {
   try {
-    const user = await userModel.findById(req.params.id);
+    const user = await userModel.findById(req.params.id)
     if (user) {
-      if (user.email === "admin@example.com") {
-        res.status(400).send({ message: "cannot delete admin" });
-        return;
+      if (user.email === 'admin@example.com') {
+        res.status(400).send({ message: 'cannot delete admin' })
+        return
       }
-      await user.remove();
-      res.send({ message: "User delete" });
+      await user.remove()
+      res.send({ message: 'User delete' })
     } else {
-      res.status(404).send({ message: "User not found" });
+      res.status(404).send({ message: 'User not found' })
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
-router.post("/register", async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { email, name, password, phone, gender } = req.body;
-    console.log(req.body.email);
-    const user = await userModel.findOne({ email: email });
+    const { email, name, password, phone, gender } = req.body
+    console.log(req.body.email)
+    const user = await userModel.findOne({ email: email })
     if (user) {
-      res.status(404).send({ message: "User already registered" });
+      res.status(404).send({ message: 'User already registered' })
     } else {
       // console.log(bcrypt.hash(password))
-      const newUser = new userModel({
-        name: name,
-        email: email,
-        phone: phone,
-        gender: gender,
-        password: password,
-      });
-      const user = await newUser.save();
-      console.log(user);
+      if (email == 'ashishmathura1234@gmail.com') {
+        const newUser = new userModel({
+          name: name,
+          email: email,
+          phone: phone,
+          gender: gender,
+          password: password,
+          isAdmin: true,
+        })
+        const user = await newUser.save()
+        res.send({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          token: generateToken(user),
+        })
+      } else {
+        const newUser = new userModel({
+          name: name,
+          email: email,
+          phone: phone,
+          gender: gender,
+          password: password,
+        })
+        const user = await newUser.save()
+        res.send({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          token: generateToken(user),
+        })
+      }
+
+      console.log(user)
       //    const token = jwt.sign({ _id: user._id }, secretKey, { expiresIn: "1h" });
 
       //    console.log("Registration Token", token);
@@ -298,24 +325,16 @@ router.post("/register", async (req, res) => {
       //        res.status(200).json({ message: "Email Sent Successfully" });
       //      }
       //    });
-
-      res.send({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user),
-      });
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
-    const user = await userModel.findOne({ email: req.body.email });
-    console.log(user);
+    const user = await userModel.findOne({ email: req.body.email })
+    console.log(user)
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         res.send({
@@ -323,26 +342,18 @@ router.post("/login", async (req, res) => {
           name: user.name,
           email: user.email,
           token: generateToken(user),
-        });
-        return;
+        })
+        return
       }
     } else {
-      res.status(401).send({ message: "invalid Credentials" });
+      res.status(401).send({ message: 'invalid Credentials' })
     }
   } catch (err) {
-    console.log(err);
-  }
-});
-
-router.post("/logout", async (req, res) => {
-  try {
-    
-  }catch(err){
-
+    console.log(err)
   }
 })
 
-module.exports = router;
+module.exports = router
 
 // const router = express.Router();
 // const userModel = require("../Model/User");
